@@ -1,9 +1,5 @@
 package com.citrushack.lobdemo;
 
-/**
- * Created by karen on 4/6/18.
- */
-
 public class Address {
 
     public String name;

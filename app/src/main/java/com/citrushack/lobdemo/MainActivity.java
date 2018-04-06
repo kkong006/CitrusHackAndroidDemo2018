@@ -24,18 +24,16 @@ import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
 
-
 public class MainActivity extends AppCompatActivity {
 
+    private static final int PAGE_SIZE = 25;
+
     private RecyclerView mRvAddresses;
-//    private List<Address> mAddresses;
     private AddressAdapter mAdapter;
     private LinearLayoutManager mLayoutManager;
 
     private boolean isLoading;
     private boolean isLastPage;
-
-    private static final int PAGE_SIZE = 25;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,9 +52,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Bind the recyclerview
         mRvAddresses = findViewById(R.id.rvAddresses);
-
-        // Initialize address list
-//        mAddresses = new ArrayList<>();
 
         // Create the adapter
         mAdapter = new AddressAdapter(this, new ArrayList<Address>());
@@ -78,11 +73,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
+
+                // Get the relevant item counts
                 int visibleItemCount = mLayoutManager.getChildCount();
                 int totalItemCount = mLayoutManager.getItemCount();
                 int firstVisibleItem = mLayoutManager.findFirstVisibleItemPosition();
 
+                // If there isn't a request at the moment and we haven't hit the api limit
                 if(!isLoading && !isLastPage) {
+                    // If the user scrolled past the last item, fetch the next page
                     if((visibleItemCount + firstVisibleItem) >= totalItemCount
                         && firstVisibleItem >= 0
                         && totalItemCount >= PAGE_SIZE) {
@@ -93,51 +92,51 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-//    @Override
-//    protected void onStart() {
-//        super.onStart();
-//        loadMoreItems();
-//    }
-
-//    @Override
-//    protected void onPostResume() {
-//        super.onPostResume();
-//        loadMoreItems();
-//    }
-
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Get items and load them into the recyclerview
         loadItems();
     }
 
     private void loadItems() {
+        // Reset the loading state and current page
         isLoading = false;
         isLastPage = false;
-
         mAdapter.clearAll();
 
+        // Fetch items starting from the first
         loadMoreItems();
     }
 
     private void loadMoreItems() {
+        // We are not loading the next page
         isLoading = true;
 
+        // Set up the GET addresses request
         AsyncHttpClient client = new AsyncHttpClient();
         client.setBasicAuth(getString(R.string.test_key), getString(R.string.password));
         RequestParams params = new RequestParams();
         params.put("offset", mLayoutManager.getItemCount());
         params.put("limit", PAGE_SIZE);
-
         client.get("https://api.lob.com/v1/addresses", params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                // We've received a response and are no longer loading
                 isLoading = false;
-                Gson gson = new Gson();
+
+                // Parse the response
                 try {
+                    // Cast the response to addresses
+                    Gson gson = new Gson();
                     Type type = new TypeToken<List<Address>>(){}.getType();
                     List<Address> newAddresses = gson.fromJson(response.getJSONArray("data").toString(), type);
+
+                    // Add the new addresses to the adapter
                     mAdapter.addAll(newAddresses);
+
+                    // If we don't get a full page, there are no results left
                     if(newAddresses.size() < PAGE_SIZE) {
                         isLastPage = true;
                     }

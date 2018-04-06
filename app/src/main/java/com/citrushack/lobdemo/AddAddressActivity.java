@@ -1,9 +1,7 @@
 package com.citrushack.lobdemo;
 
-import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -48,17 +46,23 @@ public class AddAddressActivity extends AppCompatActivity {
         btSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // Get the text the user entered
                 description = mEtDescription.getText().toString();
                 address = mEtAddress.getText().toString();
                 city = mEtCity.getText().toString();
                 state = mEtState.getText().toString();
                 zip = mEtZip.getText().toString();
+
+                // Validate the address
                 checkAddress();
             }
         });
     }
 
     private void checkAddress() {
+
+        // Issue a POST us_verifications request to validate the address
+        // NOTE: Always returns undeliverable with a test key
         AsyncHttpClient client = new AsyncHttpClient();
         client.setBasicAuth(getString(R.string.test_key), getString(R.string.password));
         RequestParams params = new RequestParams();
@@ -66,16 +70,17 @@ public class AddAddressActivity extends AppCompatActivity {
         params.put("city", city);
         params.put("state", state);
         params.put("zip_code", zip);
-
         client.post("https://api.lob.com/v1/us_verifications", params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 try {
+                    // If the response says the address is deliverable, alert the user
                     if(response.get("deliverability") == "deliverable") {
                         Toast.makeText(getApplicationContext(), "Verified address!", Toast.LENGTH_LONG).show();
                     } else {
                         Toast.makeText(getApplicationContext(), "Invalid address!", Toast.LENGTH_LONG).show();
                     }
+                    // If the address is valid, add it to the address book
                     createAddress();
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -101,6 +106,7 @@ public class AddAddressActivity extends AppCompatActivity {
 
     private void createAddress() {
 
+        // Issue a POST Addresses request
         AsyncHttpClient client = new AsyncHttpClient();
         client.setBasicAuth(getString(R.string.test_key), getString(R.string.password));
         RequestParams params = new RequestParams();
@@ -109,10 +115,10 @@ public class AddAddressActivity extends AppCompatActivity {
         params.put("address_city", city);
         params.put("address_state", state);
         params.put("address_zip", zip);
-
         client.post("https://api.lob.com/v1/addresses", params, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                // If it was successfully executed, return to MainActivity
                 finish();
             }
 
