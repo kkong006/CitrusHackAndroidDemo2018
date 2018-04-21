@@ -9,6 +9,9 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class AddressAdapter extends RecyclerView.Adapter<AddressAdapter.ViewHolder> {
 
     private Context mContext;
@@ -19,11 +22,13 @@ public class AddressAdapter extends RecyclerView.Adapter<AddressAdapter.ViewHold
         mAddresses = addresses;
     }
 
+    // Add a list of addresses to the adapter and notify it of the changes
     public void addAll(List<Address> addresses) {
         mAddresses.addAll(addresses);
         notifyItemRangeChanged(mAddresses.size() - addresses.size(), mAddresses.size());
     }
 
+    // Clear all addresses from the adapter and notify it of the changes
     public void clearAll() {
         notifyItemRangeRemoved(0, mAddresses.size());
         mAddresses.clear();
@@ -55,6 +60,7 @@ public class AddressAdapter extends RecyclerView.Adapter<AddressAdapter.ViewHold
         holder.tvCityStateZip.setText(cityStateZip);
     }
 
+    // Get the number of addresses in the adapter
     @Override
     public int getItemCount() {
         return mAddresses.size();
@@ -62,18 +68,16 @@ public class AddressAdapter extends RecyclerView.Adapter<AddressAdapter.ViewHold
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        public TextView tvDescription;
-        public TextView tvAddress;
-        public TextView tvCityStateZip;
+        @BindView(R.id.tv_description) TextView tvDescription;
+        @BindView(R.id.tv_address_line1) TextView tvAddress;
+        @BindView(R.id.tv_city_state_zip) public TextView tvCityStateZip;
 
         public ViewHolder(View item) {
             // Store item to access context from any viewholder
             super(item);
 
-            // Bind the view elements to the members
-            tvDescription = item.findViewById(R.id.tv_description);
-            tvAddress = item.findViewById(R.id.tv_address_line1);
-            tvCityStateZip = item.findViewById(R.id.tv_city_state_zip);
+            // Bind the view elements to the member variables
+            ButterKnife.bind(this, item);
         }
     }
 }
